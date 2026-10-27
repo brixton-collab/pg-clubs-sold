@@ -15268,13 +15268,15 @@ function confetti(){const c=document.createElement('canvas');c.style.cssText='po
    if(++f<260)requestAnimationFrame(d);else c.remove()})()}
 // Google Sheet (JSONP — works from a local file, no server needed)
 window.pgSheet=function(r){try{
-  const v=r.table.rows.map(x=>x.c&&x.c[0]?x.c[0].v:null), tot=+v[0], rate=+v[1]||0, goal=+v[2]||s.goal;
+  const v=r.table.rows.map(x=>x.c&&x.c[0]?x.c[0].v:null), rate=+v[1]||0, goal=+v[2]||s.goal, start=+v[3]||0, base=+v[4]||0;
+  // B5 = starting total + orders, B4 = start time (ms). Counting from a fixed start means every reload and every device shows the same number.
+  const tot=start&&base?base:+v[0], at=start&&base?start:Date.now(), key=tot+'@'+at;
   const before=shown;s.rate=rate;s.goal=goal;
-  if(tot>0&&tot!==s.sheetTotal){s.total=tot;s.at=Date.now();s.sheetTotal=tot;save();text();if(before!==null&&!rolling&&now()>before)roll(before,now(),2600);else{tick();bar(now())}}
+  if(tot>0&&key!==s.sheetTotal){s.total=tot;s.at=at;s.sheetTotal=key;save();text();if(before!==null&&!rolling&&now()>before)roll(before,now(),2600);else{tick();bar(now())}}
   else{save();text();tick();bar(now())}
-  $('pgsrc').textContent='Sheet connected · '+fmt(tot)+' · checked '+new Date().toLocaleTimeString();
+  $('pgsrc').textContent='Sheet connected · '+fmt(now())+' · checked '+new Date().toLocaleTimeString();
 }catch(e){$('pgsrc').textContent='Sheet unreadable — using manual numbers'}};
-function pull(){const sc=document.createElement('script');sc.src='https://docs.google.com/spreadsheets/d/'+SHEET+'/gviz/tq?tqx=responseHandler:pgSheet&range=B1:B3&t='+Date.now();
+function pull(){const sc=document.createElement('script');sc.src='https://docs.google.com/spreadsheets/d/'+SHEET+'/gviz/tq?tqx=responseHandler:pgSheet&range=B1:B5&t='+Date.now();
   sc.onerror=()=>{$('pgsrc').textContent='Offline — using manual numbers'};sc.onload=()=>sc.remove();document.body.appendChild(sc)}
 function open(){$('pgiTotal').value=now();$('pgiRate').value=s.rate;$('pgiGoal').value=s.goal;$('pgiLabel').value=s.label;$('pgiLabel').placeholder=autoLabel();$('pgpanel').classList.add('open')}
 $('pgsave').onclick=()=>{s.total=+$('pgiTotal').value||0;s.rate=+$('pgiRate').value||0;s.goal=+$('pgiGoal').value||D.goal;s.label=$('pgiLabel').value.trim();s.at=Date.now();save();text();tick();bar(now());$('pgpanel').classList.remove('open')};
